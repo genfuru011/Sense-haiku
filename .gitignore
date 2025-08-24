@@ -27,5 +27,5 @@ dist-ssr
 .env
 
 # backend
-backend/venv
-backend/db.sqlite
+/backend/.venv
+/backend/db.sqlite
