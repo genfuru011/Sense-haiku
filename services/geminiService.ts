@@ -1,11 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-if (!process.env.API_KEY) {
+let ai: GoogleGenAI | null = null;
+
+if (process.env.API_KEY) {
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+} else {
     console.warn("API_KEY environment variable not set. AI features will be disabled.");
 }
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 const haikuSchema = {
   type: Type.OBJECT,
@@ -27,7 +29,7 @@ const haikuSchema = {
 };
 
 export const generateHaikuFromText = async (text: string): Promise<{ line1: string; line2: string; line3: string; }> => {
-  if (!process.env.API_KEY) {
+  if (!ai || !process.env.API_KEY) {
     // Simulate AI response if API key is not available
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {

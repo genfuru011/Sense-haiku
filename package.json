@@ -6,16 +6,23 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:api": "source backend/.venv/bin/activate && uvicorn backend.app.main:app --reload --port 8000",
+    "dev:web": "vite",
+    "dev:all": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "setup:api": "python3 -m venv backend/.venv && source backend/.venv/bin/activate && pip install -U pip && pip install -r backend/requirements.txt"
   },
   "dependencies": {
     "@google/genai": "^1.12.0",
-    "react-dom": "^19.1.1",
-    "react": "^19.1.1",
+    "react-dom": "^18.3.1",
+    "react": "^18.3.1",
     "react-router-dom": "^7.7.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "concurrently": "^9.1.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

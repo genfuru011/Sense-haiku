@@ -6,11 +6,12 @@ interface HomePageProps {
     posts: HaikuPost[];
     onReact: (postId: string, reactionId: ReactionId) => void;
     addPost: (post: Omit<HaikuPost, 'id' | 'timestamp' | 'author' | 'authorAvatar' | 'reactions'>) => void;
+    requestSort?: (sort: 'new' | 'trending') => void;
 }
 
 type FilterType = 'new' | 'popular';
 
-const HomePage: React.FC<HomePageProps> = ({ posts, onReact, addPost }) => {
+const HomePage: React.FC<HomePageProps> = ({ posts, onReact, addPost, requestSort }) => {
     const [filter, setFilter] = useState<FilterType>('new');
 
     const { topLevelPosts, repliesByPostId, postsById } = useMemo(() => {
@@ -53,12 +54,18 @@ const HomePage: React.FC<HomePageProps> = ({ posts, onReact, addPost }) => {
         return postsCopy;
     }, [topLevelPosts, filter]);
 
+    const handleFilterChange = (next: FilterType) => {
+        setFilter(next);
+        if (next === 'new') requestSort?.('new');
+        if (next === 'popular') requestSort?.('trending');
+    };
+
     return (
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-6">
                 <div className="flex justify-center bg-slate-100 rounded-full p-1">
                     <button
-                        onClick={() => setFilter('new')}
+                        onClick={() => handleFilterChange('new')}
                         className={`w-full py-2.5 text-sm font-semibold rounded-full transition-colors ${
                             filter === 'new' ? 'bg-white shadow text-teal-600' : 'text-slate-600 hover:bg-slate-200'
                         }`}
@@ -66,7 +73,7 @@ const HomePage: React.FC<HomePageProps> = ({ posts, onReact, addPost }) => {
                         新着
                     </button>
                     <button
-                        onClick={() => setFilter('popular')}
+                        onClick={() => handleFilterChange('popular')}
                         className={`w-full py-2.5 text-sm font-semibold rounded-full transition-colors ${
                             filter === 'popular' ? 'bg-white shadow text-teal-600' : 'text-slate-600 hover:bg-slate-200'
                         }`}
