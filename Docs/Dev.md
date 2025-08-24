@@ -48,4 +48,8 @@ npm run preview
 - `backend/` FastAPIアプリ
 - `Docs/` ドキュメント
 
+### デプロイ
+- Renderでフロント+サーバ+Disk構成を推奨
+- 手順: `Docs/Deploy-Render.md` を参照
+
 

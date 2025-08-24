@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { HaikuPost, Visibility } from '../types';
-import { generateHaikuFromText } from '../services/geminiService';
+import { generateHaiku, countMora } from '../services/backendService';
 import QuotedHaikuCard from '../components/QuotedHaikuCard';
 
 interface NewPostPageProps {
@@ -14,7 +14,9 @@ const InputField: React.FC<{
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   maxLength: number;
   placeholder: string;
-}> = ({ value, onChange, maxLength, placeholder }) => (
+  counter?: number | null;
+  target?: number;
+}> = ({ value, onChange, maxLength, placeholder, counter, target }) => (
   <div className="relative">
     <input
       type="text"
@@ -25,7 +27,7 @@ const InputField: React.FC<{
       className="w-full bg-slate-100 border-2 border-transparent focus:border-teal-400 focus:ring-0 rounded-lg py-3 px-4 text-center text-lg font-serif text-slate-800"
     />
     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-      {value.length}/{maxLength}
+      {(counter ?? value.length)}/{target ?? maxLength}
     </span>
   </div>
 );
@@ -46,6 +48,9 @@ const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [mora1, setMora1] = useState<number | null>(null);
+  const [mora2, setMora2] = useState<number | null>(null);
+  const [mora3, setMora3] = useState<number | null>(null);
 
   const quotedPost = useMemo(() => {
     if (!quotedPostId) return null;
@@ -58,13 +63,23 @@ const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
     setIsLoadingAi(true);
     setAiError('');
     try {
-      const result = await generateHaikuFromText(aiPrompt);
+      const result = await generateHaiku({ text: aiPrompt });
       setLine1(result.line1);
       setLine2(result.line2);
       setLine3(result.line3);
       setIsAiGenerated(true);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : '不明なエラーが発生しました。');
+      const msg = error instanceof Error ? error.message : 'AIの生成に失敗しました。時間をおいて再試行してください。';
+      // よくある失敗パターンに対して文言を最適化
+      if (msg.includes('timeout') || msg.includes('Timeout') || msg.includes('408')) {
+        setAiError('AIがタイムアウトしました。通信状況を確認し、少し待って再試行してください。');
+      } else if (msg.includes('Rate limit') || msg.includes('429')) {
+        setAiError('短時間にリクエストが集中しています。しばらく待ってから再試行してください。');
+      } else if (msg.includes('AI upstream error') || msg.includes('503')) {
+        setAiError('AIサービスが混雑しています。時間を置いてもう一度お試しください。');
+      } else {
+        setAiError(msg);
+      }
     } finally {
       setIsLoadingAi(false);
     }
@@ -80,6 +95,19 @@ const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
       reader.readAsDataURL(file);
     }
   };
+
+  // 入力のたびにモーラ数をサーバで計算
+  React.useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await countMora({ line1, line2, line3 });
+        setMora1(res.line1); setMora2(res.line2); setMora3(res.line3);
+      } catch {}
+    };
+    // 少しデバウンス
+    const id = setTimeout(run, 200);
+    return () => clearTimeout(id);
+  }, [line1, line2, line3]);
 
   const handleRemoveImage = () => {
     setImagePreview(null);
@@ -146,9 +174,9 @@ const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
         {quotedPost && <QuotedHaikuCard post={quotedPost} />}
 
         <div className="space-y-4">
-          <InputField value={line1} onChange={(e) => setLine1(e.target.value)} maxLength={5} placeholder="五" />
-          <InputField value={line2} onChange={(e) => setLine2(e.target.value)} maxLength={7} placeholder="七" />
-          <InputField value={line3} onChange={(e) => setLine3(e.target.value)} maxLength={5} placeholder="五" />
+          <InputField value={line1} onChange={(e) => setLine1(e.target.value)} maxLength={5} placeholder="五" counter={mora1} target={5} />
+          <InputField value={line2} onChange={(e) => setLine2(e.target.value)} maxLength={7} placeholder="七" counter={mora2} target={7} />
+          <InputField value={line3} onChange={(e) => setLine3(e.target.value)} maxLength={5} placeholder="五" counter={mora3} target={5} />
         </div>
         
         {/* Image Upload Section */}

@@ -6,11 +6,11 @@ import NewPostPage from './pages/NewPostPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
-import ProtectedRoute from './components/ProtectedRoute';
 import { HaikuPost, ReactionId, Visibility } from './types';
 import { getInitialReactions } from './constants';
 import { useAuth } from './contexts/AuthContext';
-import { fetchPosts as apiFetchPosts, createPost as apiCreatePost, react as apiReact, unreact as apiUnreact } from './services/backendService';
+import { fetchPosts as apiFetchPosts, createPost as apiCreatePost, react as apiReact, unreact as apiUnreact, replyToPost as apiReplyToPost, quotePost as apiQuotePost } from './services/backendService';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const mapCountsToReactions = (sense?: number, fukai?: number) => {
     const reactions = getInitialReactions();
@@ -24,30 +24,67 @@ const mapCountsToReactions = (sense?: number, fukai?: number) => {
 const App: React.FC = () => {
     const [haikuPosts, setHaikuPosts] = useState<HaikuPost[]>([]);
     const [currentSort, setCurrentSort] = useState<'new'|'trending'>('new');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(1);
     const { currentUser } = useAuth();
 
-    const loadPosts = useCallback(async (sort: 'new'|'trending') => {
-        const backendPosts = await apiFetchPosts(sort);
-        const mapped: HaikuPost[] = backendPosts.map(p => ({
-            id: String(p.id),
-            author: p.author_name || '匿名',
-            authorAvatar: p.author_avatar || `https://picsum.photos/seed/${p.id}/100/100`,
-            line1: p.line1,
-            line2: p.line2,
-            line3: p.line3,
-            image: p.image,
-            reactions: mapCountsToReactions(p.sense_count, p.fukai_count),
-            timestamp: p.created_at ? new Date(p.created_at).getTime() : Date.now(),
-            visibility: Visibility.Public,
-            isAiGenerated: false,
-            replyToId: p.reply_to_id ? String(p.reply_to_id) : undefined,
-            quotedPostId: p.quoted_post_id ? String(p.quoted_post_id) : undefined,
-        }));
-        setHaikuPosts(mapped);
+    const loadPosts = useCallback(async (sort: 'new'|'trending', pageNum: number = 1, append: boolean = false) => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const backendPosts = await apiFetchPosts(sort, pageNum);
+            const mapped: HaikuPost[] = backendPosts.map(p => ({
+                id: String(p.id),
+                author: p.author_name || '匿名',
+                authorAvatar: p.author_avatar || `https://picsum.photos/seed/${p.id}/100/100`,
+                line1: p.line1,
+                line2: p.line2,
+                line3: p.line3,
+                image: p.image,
+                reactions: mapCountsToReactions(p.sense_count, p.fukai_count),
+                timestamp: p.created_at ? new Date(p.created_at).getTime() : Date.now(),
+                visibility: Visibility.Public,
+                isAiGenerated: false,
+                replyToId: p.reply_to_id ? String(p.reply_to_id) : undefined,
+                quotedPostId: p.quoted_post_id ? String(p.quoted_post_id) : undefined,
+            }));
+            
+            if (append) {
+                setHaikuPosts(prev => [...prev, ...mapped]);
+            } else {
+                setHaikuPosts(mapped);
+            }
+            
+            // ページネーション制御（20件未満なら最後のページとみなす）
+            setHasMore(backendPosts.length >= 20);
+        } catch (e) {
+            console.error('Failed to load posts', e);
+            setError('投稿の読み込みに失敗しました。');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => {
-        loadPosts(currentSort).catch(e => console.error('Failed to load posts', e));
+        setPage(1);
+        loadPosts(currentSort, 1, false).catch(e => console.error('Failed to load posts', e));
+    }, [currentSort, loadPosts]);
+
+    const loadMorePosts = useCallback(() => {
+        if (!loading && hasMore) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            loadPosts(currentSort, nextPage, true);
+        }
+    }, [loading, hasMore, page, currentSort, loadPosts]);
+
+    const refreshPosts = useCallback(() => {
+        // 最新の投稿を読み込む（ページ1を再読み込み）
+        setPage(1);
+        loadPosts(currentSort, 1, false);
     }, [currentSort, loadPosts]);
 
     const handleAddPost = useCallback(async (newPostData: Omit<HaikuPost, 'id' | 'timestamp' | 'author' | 'authorAvatar' | 'reactions'>) => {
@@ -56,16 +93,44 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const created = await apiCreatePost({
-                author_name: currentUser.displayName,
-                author_avatar: currentUser.avatarUrl,
-                line1: newPostData.line1,
-                line2: newPostData.line2,
-                line3: newPostData.line3,
-                image: newPostData.image,
-                reply_to_id: newPostData.replyToId ? parseInt(newPostData.replyToId, 10) : undefined,
-                quoted_post_id: newPostData.quotedPostId ? parseInt(newPostData.quotedPostId, 10) : undefined,
-            });
+            let created;
+            
+            // 返信の場合
+            if (newPostData.replyToId) {
+                created = await apiReplyToPost(parseInt(newPostData.replyToId, 10), {
+                    author_name: currentUser.displayName,
+                    author_avatar: currentUser.avatarUrl,
+                    line1: newPostData.line1,
+                    line2: newPostData.line2,
+                    line3: newPostData.line3,
+                    image: newPostData.image,
+                });
+            }
+            // 引用の場合
+            else if (newPostData.quotedPostId) {
+                created = await apiQuotePost(parseInt(newPostData.quotedPostId, 10), {
+                    author_name: currentUser.displayName,
+                    author_avatar: currentUser.avatarUrl,
+                    line1: newPostData.line1,
+                    line2: newPostData.line2,
+                    line3: newPostData.line3,
+                    image: newPostData.image,
+                });
+            }
+            // 通常の投稿の場合
+            else {
+                created = await apiCreatePost({
+                    author_name: currentUser.displayName,
+                    author_avatar: currentUser.avatarUrl,
+                    line1: newPostData.line1,
+                    line2: newPostData.line2,
+                    line3: newPostData.line3,
+                    image: newPostData.image,
+                    reply_to_id: undefined,
+                    quoted_post_id: undefined,
+                });
+            }
+            
             const newPost: HaikuPost = {
                 id: String(created.id),
                 author: created.author_name,
@@ -117,7 +182,19 @@ const App: React.FC = () => {
             <Header />
             <main>
                 <Routes>
-                    <Route path="/" element={<HomePage posts={haikuPosts} onReact={handleReaction} addPost={handleAddPost} requestSort={requestSort} />} />
+                    <Route path="/" element={
+                        <HomePage 
+                            posts={haikuPosts} 
+                            onReact={handleReaction} 
+                            addPost={handleAddPost} 
+                            requestSort={requestSort}
+                            loading={loading}
+                            error={error}
+                            hasMore={hasMore}
+                            onLoadMore={loadMorePosts}
+                            onRefresh={refreshPosts}
+                        />
+                    } />
                     <Route path="/login" element={<LoginPage />} />
                     <Route 
                         path="/new" 

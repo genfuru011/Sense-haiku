@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { signup as apiSignup, login as apiLogin, getCurrentUser, logout as apiLogout, BackendUser } from '../services/backendService';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   googleLogin: () => Promise<void>;
   updateProfile: (data: Partial<Omit<User, 'id' | 'email'>>) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,8 +27,14 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const MOCK_USERS_STORAGE_KEY = 'haiku-mock-users';
-const CURRENT_USER_STORAGE_KEY = 'haiku-current-user';
+// バックエンドユーザーをフロントエンドユーザーに変換
+const convertBackendUser = (backendUser: BackendUser): User => ({
+  id: backendUser.id.toString(),
+  email: backendUser.email,
+  displayName: backendUser.display_name,
+  avatarUrl: backendUser.avatar_url || '',
+  bio: backendUser.bio,
+});
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -34,97 +42,61 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const userJson = localStorage.getItem(CURRENT_USER_STORAGE_KEY);
-      if (userJson) {
-        setCurrentUser(JSON.parse(userJson));
+    // 初期化時にトークンがある場合はユーザー情報を取得
+    const initializeAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(convertBackendUser(user));
+      } catch (error) {
+        console.log("No valid token found, user not logged in");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      localStorage.removeItem(CURRENT_USER_STORAGE_KEY);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    initializeAuth();
   }, []);
 
-  const getMockUsers = (): { [email: string]: User } => {
-    const usersJson = localStorage.getItem(MOCK_USERS_STORAGE_KEY);
-    return usersJson ? JSON.parse(usersJson) : {};
-  };
-
-  const saveMockUsers = (users: { [email: string]: User }) => {
-    localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
-  };
-  
-  const saveCurrentUser = (user: User | null) => {
-      if (user) {
-          localStorage.setItem(CURRENT_USER_STORAGE_KEY, JSON.stringify(user));
-      } else {
-          localStorage.removeItem(CURRENT_USER_STORAGE_KEY);
-      }
-      setCurrentUser(user);
-  }
-
   const login = async (email: string, pass: string): Promise<void> => {
-    // Note: Password is not actually checked in this mock implementation
-    const users = getMockUsers();
-    if (users[email]) {
-      saveCurrentUser(users[email]);
-    } else {
-      throw new Error("ユーザーが見つかりません。");
+    try {
+      await apiLogin(email, pass);
+      const user = await getCurrentUser();
+      setCurrentUser(convertBackendUser(user));
+      navigate('/');
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
     }
   };
 
   const signup = async (email: string, pass: string, displayName: string): Promise<void> => {
-    const users = getMockUsers();
-    if (users[email]) {
-      throw new Error("このメールアドレスは既に使用されています。");
+    try {
+      await apiSignup(email, pass, displayName);
+      const user = await getCurrentUser();
+      setCurrentUser(convertBackendUser(user));
+      navigate('/');
+    } catch (error) {
+      console.error("Signup failed:", error);
+      throw error;
     }
-    const newUser: User = {
-      id: `user_${Date.now()}`,
-      email,
-      displayName,
-      avatarUrl: `https://picsum.photos/seed/${Date.now()}/200/200`,
-      bio: `こんにちは！${displayName}です。よろしくお願いします。`,
-    };
-    users[email] = newUser;
-    saveMockUsers(users);
-    saveCurrentUser(newUser);
   };
   
   const googleLogin = async (): Promise<void> => {
-      const googleUserEmail = 'google.user@example.com';
-      let users = getMockUsers();
-      let user = users[googleUserEmail];
-      if (!user) {
-          user = {
-            id: `user_${Date.now()}`,
-            email: googleUserEmail,
-            displayName: 'Googleユーザー',
-            avatarUrl: `https://picsum.photos/seed/google/200/200`,
-            bio: 'Googleアカウントでログインしました。',
-          };
-          users[googleUserEmail] = user;
-          saveMockUsers(users);
-      }
-      saveCurrentUser(user);
-      navigate('/');
+    // Googleログインは将来的に実装
+    throw new Error("Google login not implemented yet");
   }
 
   const logout = () => {
-    saveCurrentUser(null);
+    apiLogout();
+    setCurrentUser(null);
+    navigate('/login');
   };
 
   const updateProfile = async (data: Partial<Omit<User, 'id' | 'email'>>): Promise<void> => {
-      if(!currentUser) throw new Error("Not logged in");
-      const updatedUser = { ...currentUser, ...data };
-      saveCurrentUser(updatedUser);
-      
-      const users = getMockUsers();
-      if(currentUser.email && users[currentUser.email]){
-          users[currentUser.email] = updatedUser;
-          saveMockUsers(users);
-      }
+    if (!currentUser) throw new Error("Not logged in");
+    // プロフィール更新APIは将来的に実装
+    const updatedUser = { ...currentUser, ...data };
+    setCurrentUser(updatedUser);
   };
 
   const value = {
@@ -134,6 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     googleLogin,
     updateProfile,
+    loading,
   };
 
   return (
