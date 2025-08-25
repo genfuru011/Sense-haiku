@@ -64,13 +64,13 @@ const LoginPage: React.FC = () => {
           <div className="flex border-b border-slate-200">
             <button
               onClick={() => setIsLoginView(true)}
-              className={`w-full py-3 text-lg font-bold transition-colors ${isLoginView ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`w-full py-3 text-lg font-bold transition-colors ${isLoginView ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700'}`}
             >
               ログイン
             </button>
             <button
               onClick={() => setIsLoginView(false)}
-              className={`w-full py-3 text-lg font-bold transition-colors ${!isLoginView ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`w-full py-3 text-lg font-bold transition-colors ${!isLoginView ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700'}`}
             >
               新規登録
             </button>
@@ -88,39 +88,39 @@ const LoginPage: React.FC = () => {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-teal-400 focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
                 placeholder="俳句よみ人"
               />
             </div>
           )}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">メールアドレス</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-slate-100 border-2 border-transparent focus:border-teal-400 focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
-              placeholder="email@example.com"
-            />
+                          <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
+                placeholder="email@example.com"
+              />
           </div>
           <div>
             <label htmlFor="password"className="block text-sm font-medium text-slate-700 mb-1">パスワード</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full bg-slate-100 border-2 border-transparent focus:border-teal-400 focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
-              placeholder="6文字以上"
-            />
+                          <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:ring-0 rounded-lg py-2 px-4 text-slate-800"
+                placeholder="6文字以上"
+              />
           </div>
           
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-md font-bold text-white bg-teal-500 hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-slate-300"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-md font-bold text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-slate-300"
             >
               {loading ? '処理中...' : (isLoginView ? 'ログイン' : '登録して始める')}
             </button>
@@ -149,10 +149,11 @@ const LoginPage: React.FC = () => {
                 <button
                     onClick={handleGoogleLogin}
                     disabled={loading}
-                    className="w-full flex items-center justify-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm bg-white text-md font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-slate-100"
+                    className="w-full flex items-center justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 transition-colors duration-200"
+                    style={{ minHeight: '40px' }}
                 >
                     <GoogleIcon />
-                    <span className="ml-3">Googleでログイン</span>
+                    <span className="ml-3 font-roboto font-medium">Googleでログイン</span>
                 </button>
             </div>
         </div>

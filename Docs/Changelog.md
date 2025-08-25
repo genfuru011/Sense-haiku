@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to Keep a Changelog and uses SemVer.
 
 ## [Unreleased]
+- Feat: 投稿詳細ページの実装（HaikuCardクリックで詳細表示）
+- Feat: 階層的な返信システム（ネストした返信の表示）
+- Feat: ネスト深さ制限機能（2階層まで表示、詳細ページでは制限なし）
+- Feat: 投稿詳細ページでの返信常時表示機能
+- Doc: 通知機能とサイドバーナビゲーションの実装計画をTODOに追加
 - Doc: ER図とシーケンス図の拡充（usersテーブル、返信/引用、認証、AI生成）
 - UX: エラー通知システム（トースト/再試行機能）の実装
 - Security: CORS設定を環境変数化（本番環境でのセキュリティ向上）

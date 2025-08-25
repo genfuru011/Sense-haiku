@@ -113,7 +113,7 @@ const ProfilePage: React.FC = () => {
             />
           </div>
 
-          {message && <p className="text-teal-600 text-sm text-center bg-teal-50 p-3 rounded-lg">{message}</p>}
+          {message && <p className="text-primary text-sm text-center bg-accent-bg p-3 rounded-lg">{message}</p>}
 
           <div className="flex justify-end items-center gap-4">
             <button
@@ -126,7 +126,7 @@ const ProfilePage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="py-2 px-5 text-sm font-semibold text-white bg-teal-500 rounded-full hover:bg-teal-600 disabled:bg-slate-400 shadow-md"
+              className="py-2 px-5 text-sm font-semibold text-white bg-primary rounded-full hover:bg-primary-light disabled:bg-slate-400 shadow-md"
             >
               {loading ? '保存中...' : '保存する'}
             </button>

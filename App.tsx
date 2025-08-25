@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import NewPostPage from './pages/NewPostPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import PostDetailPage from './pages/PostDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { HaikuPost, ReactionId, Visibility } from './types';
 import { getInitialReactions } from './constants';
@@ -13,12 +14,16 @@ import { useToast } from './contexts/ToastContext';
 import { fetchPosts as apiFetchPosts, createPost as apiCreatePost, react as apiReact, unreact as apiUnreact, replyToPost as apiReplyToPost, quotePost as apiQuotePost } from './services/backendService';
 import ProtectedRoute from './components/ProtectedRoute';
 
-const mapCountsToReactions = (sense?: number, fukai?: number) => {
+const mapCountsToReactions = (sense?: number, fukai?: number, postId?: string) => {
     const reactions = getInitialReactions();
+    const storageKey = 'reactedByPost';
+    const store = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    
     return reactions.map(r => {
-        if (r.id === (ReactionId as any).Sense) return { ...r, count: sense ?? 0 };
-        if (r.id === (ReactionId as any).Fukai) return { ...r, count: fukai ?? 0 };
-        return r;
+        const isReacted = postId ? !!store[`${postId}:${r.id}`] : false;
+        if (r.id === (ReactionId as any).Sense) return { ...r, count: sense ?? 0, isReacted };
+        if (r.id === (ReactionId as any).Fukai) return { ...r, count: fukai ?? 0, isReacted };
+        return { ...r, isReacted };
     });
 };
 
@@ -46,7 +51,7 @@ const App: React.FC = () => {
                 line2: p.line2,
                 line3: p.line3,
                 image: p.image,
-                reactions: mapCountsToReactions(p.sense_count, p.fukai_count),
+                reactions: mapCountsToReactions(p.sense_count, p.fukai_count, String(p.id)),
                 timestamp: p.created_at ? new Date(p.created_at).getTime() : Date.now(),
                 visibility: Visibility.Public,
                 isAiGenerated: false,
@@ -143,7 +148,7 @@ const App: React.FC = () => {
                 line2: created.line2,
                 line3: created.line3,
                 image: created.image,
-                reactions: mapCountsToReactions(created.sense_count, created.fukai_count),
+                reactions: mapCountsToReactions(created.sense_count, created.fukai_count, String(created.id)),
                 timestamp: created.created_at ? new Date(created.created_at).getTime() : Date.now(),
                 visibility: newPostData.visibility ?? Visibility.Public,
                 isAiGenerated: newPostData.isAiGenerated,
@@ -171,7 +176,7 @@ const App: React.FC = () => {
             localStorage.setItem(storageKey, JSON.stringify(store));
             setHaikuPosts(prev => prev.map(p => p.id === postId ? {
                 ...p,
-                reactions: mapCountsToReactions(updated.sense_count, updated.fukai_count)
+                reactions: mapCountsToReactions(updated.sense_count, updated.fukai_count, postId)
             } : p));
         } catch (e) {
             console.error('Failed to react', e);
@@ -208,6 +213,12 @@ const App: React.FC = () => {
                             <ProtectedRoute>
                                 <NewPostPage posts={haikuPosts} addPost={handleAddPost} />
                             </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/post/:postId" 
+                        element={
+                            <PostDetailPage addPost={handleAddPost} />
                         } 
                     />
                     <Route 

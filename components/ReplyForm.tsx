@@ -18,7 +18,7 @@ const InputField: React.FC<{
         onChange={onChange}
         maxLength={maxLength}
         placeholder={placeholder}
-        className="w-full bg-slate-100 border-2 border-transparent focus:border-teal-400 focus:ring-0 rounded-md py-2 px-3 text-center text-md font-serif text-slate-800"
+        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:ring-0 rounded-md py-2 px-3 text-center text-md font-serif text-slate-800"
         required
     />
 );
@@ -55,7 +55,7 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ onSubmit, onCancel, isSubmitting 
                 <button 
                     type="submit"
                     disabled={isSubmitting}
-                    className="py-1 px-4 text-sm font-semibold text-white bg-teal-500 rounded-full hover:bg-teal-600 disabled:bg-slate-400"
+                    className="py-1 px-4 text-sm font-semibold text-white bg-primary rounded-full hover:bg-primary-light disabled:bg-slate-400"
                 >
                     返信する
                 </button>

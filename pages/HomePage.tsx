@@ -220,7 +220,7 @@ const HomePage: React.FC<HomePageProps> = ({
                         onClick={() => handleFilterChange('new')}
                         disabled={loading}
                         className={`w-full py-2.5 text-sm font-semibold rounded-full transition-colors ${
-                            filter === 'new' ? 'bg-white shadow text-teal-600' : 'text-slate-600 hover:bg-slate-200'
+                            filter === 'new' ? 'bg-white shadow text-primary' : 'text-slate-600 hover:bg-slate-200'
                         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         新着
@@ -229,7 +229,7 @@ const HomePage: React.FC<HomePageProps> = ({
                         onClick={() => handleFilterChange('popular')}
                         disabled={loading}
                         className={`w-full py-2.5 text-sm font-semibold rounded-full transition-colors ${
-                            filter === 'popular' ? 'bg-white shadow text-teal-600' : 'text-slate-600 hover:bg-slate-200'
+                            filter === 'popular' ? 'bg-white shadow text-primary' : 'text-slate-600 hover:bg-slate-200'
                         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         人気
@@ -240,7 +240,7 @@ const HomePage: React.FC<HomePageProps> = ({
             {/* プルダウン更新インジケーター */}
             {isPulling && (
                 <div 
-                    className="flex justify-center items-center py-4 text-teal-600 text-sm font-medium"
+                    className="flex justify-center items-center py-4 text-primary text-sm font-medium"
                     style={{ 
                         transform: `translateY(${Math.min(pullDistance, PULL_THRESHOLD)}px)`,
                         transition: 'transform 0.1s ease-out'
@@ -256,7 +256,7 @@ const HomePage: React.FC<HomePageProps> = ({
                     <button
                         onClick={onRefresh}
                         disabled={loading}
-                        className="w-full py-2 text-sm font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full py-2 text-sm font-medium text-primary bg-accent-bg border border-accent-border rounded-lg hover:bg-accent-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         {loading ? '読み込み中...' : '最新の投稿を読み込む'}
                     </button>
@@ -293,7 +293,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 {/* ローディングインジケーター */}
                 {loading && (
                     <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                 )}
                 

@@ -8,14 +8,64 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
+      :root {
+        /* テーマカラー - Indigoベース */
+        --color-primary: #4f46e5; /* indigo-600 */
+        --color-primary-light: #6366f1; /* indigo-500 */
+        --color-primary-dark: #3730a3; /* indigo-700 */
+        --color-primary-bg: #eef2ff; /* indigo-50 */
+        --color-primary-border: #c7d2fe; /* indigo-300 */
+        --color-primary-hover: #4f46e5; /* indigo-600 */
+        --color-primary-focus: #4f46e5; /* indigo-600 */
+        
+        /* アクセントカラー */
+        --color-accent: #4f46e5; /* indigo-600 */
+        --color-accent-light: #6366f1; /* indigo-500 */
+        --color-accent-bg: #eef2ff; /* indigo-50 */
+        --color-accent-border: #c7d2fe; /* indigo-300 */
+      }
+      
       body {
         font-family: 'Noto Sans JP', sans-serif;
       }
       .font-serif {
         font-family: 'Noto Serif JP', serif;
       }
+      .font-roboto {
+        font-family: 'Roboto', sans-serif;
+      }
+      
+      /* テーマカラーユーティリティクラス */
+      .bg-primary { background-color: var(--color-primary); }
+      .bg-primary-light { background-color: var(--color-primary-light); }
+      .bg-primary-bg { background-color: var(--color-primary-bg); }
+      .bg-accent { background-color: var(--color-accent); }
+      .bg-accent-light { background-color: var(--color-accent-light); }
+      .bg-accent-bg { background-color: var(--color-accent-bg); }
+      
+      .text-primary { color: var(--color-primary); }
+      .text-primary-light { color: var(--color-primary-light); }
+      .text-accent { color: var(--color-accent); }
+      
+      .border-primary { border-color: var(--color-primary); }
+      .border-primary-light { border-color: var(--color-primary-light); }
+      .border-primary-border { border-color: var(--color-primary-border); }
+      .border-accent { border-color: var(--color-accent); }
+      .border-accent-border { border-color: var(--color-accent-border); }
+      
+      .hover\:bg-primary:hover { background-color: var(--color-primary); }
+      .hover\:bg-primary-light:hover { background-color: var(--color-primary-light); }
+      .hover\:bg-accent:hover { background-color: var(--color-accent); }
+      .hover\:bg-accent-light:hover { background-color: var(--color-accent-light); }
+      
+      .hover\:text-primary:hover { color: var(--color-primary); }
+      .hover\:text-accent:hover { color: var(--color-accent); }
+      
+      .focus\:border-primary:focus { border-color: var(--color-primary); }
+      .focus\:ring-primary:focus { --tw-ring-color: var(--color-primary); }
+      
       @keyframes pop-animation {
         0% { transform: scale(1) rotate(0); }
         50% { transform: scale(1.4) rotate(-15deg); }
