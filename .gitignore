@@ -29,3 +29,4 @@ dist-ssr
 # backend
 /backend/.venv
 /backend/db.sqlite
+/backend/app.db
