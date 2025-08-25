@@ -9,8 +9,10 @@ from .db import get_db
 from .models import User
 from .schemas import TokenData
 
+import os
+
 # JWT設定
-SECRET_KEY = "your-secret-key-here"  # 本番環境では環境変数から取得
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-here")  # 本番環境では環境変数から取得
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

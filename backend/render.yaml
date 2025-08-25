@@ -33,3 +33,5 @@ services:
         value: 3
       - key: CORS_ORIGINS
         value: https://sense-haiku.onrender.com,https://sense-haiku-frontend.onrender.com
+      - key: JWT_SECRET_KEY
+        sync: false
