@@ -34,8 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 初回起動時にテーブル作成
-Base.metadata.create_all(bind=engine)
+# 初回起動時にテーブル作成（PostgreSQLの場合のみ）
+import os
+if os.getenv("DATABASE_URL"):
+    Base.metadata.create_all(bind=engine)
 
 # 形態素解析器（起動時に一度初期化）
 tagger = Tagger()
@@ -43,6 +45,15 @@ tagger = Tagger()
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.post("/api/init-db")
+async def init_database():
+    """データベースの初期化（開発用）"""
+    try:
+        Base.metadata.create_all(bind=engine)
+        return {"message": "Database initialized successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database initialization failed: {str(e)}")
 
 # 認証エンドポイント
 @app.post("/api/auth/signup", response_model=Token)

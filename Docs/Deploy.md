@@ -44,6 +44,13 @@ Sense-haikuをRenderでデプロイする手順です。
    - 作成後、接続文字列をコピー
    - 環境変数に追加: `DATABASE_URL=postgresql://...`
 
+6. **データベースの初期化**
+   - デプロイ完了後、以下のURLにPOSTリクエストを送信:
+   ```
+   POST https://sense-haiku-api.onrender.com/api/init-db
+   ```
+   - または、Renderダッシュボードで「Manual Deploy」を実行
+
 ### 2. フロントエンド（React）のデプロイ
 
 1. **New Static Site を選択**
