@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleIcon } from '../components/icons/GoogleIcon';
 
@@ -12,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const { login, signup, googleLogin } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -32,7 +34,9 @@ const LoginPage: React.FC = () => {
       }
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'エラーが発生しました。');
+      const errorMessage = err.message || 'エラーが発生しました。';
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -45,7 +49,9 @@ const LoginPage: React.FC = () => {
           await googleLogin();
           navigate(from, { replace: true });
       } catch (err: any) {
-          setError(err.message || 'Googleログインに失敗しました。');
+          const errorMessage = err.message || 'Googleログインに失敗しました。';
+          setError(errorMessage);
+          showError(errorMessage);
       } finally {
           setLoading(false);
       }

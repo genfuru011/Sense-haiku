@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
   const { currentUser, updateProfile } = useAuth();
+  const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
   const [displayName, setDisplayName] = useState('');
@@ -38,10 +40,14 @@ const ProfilePage: React.FC = () => {
 
     try {
       await updateProfile({ displayName, bio, avatarUrl });
-      setMessage('プロフィールが更新されました！');
+      const successMessage = 'プロフィールが更新されました！';
+      setMessage(successMessage);
+      showSuccess(successMessage);
       setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
     } catch (err: any) {
-      setMessage(err.message || '更新中にエラーが発生しました。');
+      const errorMessage = err.message || '更新中にエラーが発生しました。';
+      setMessage(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }

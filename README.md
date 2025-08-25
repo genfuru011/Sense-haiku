@@ -85,6 +85,12 @@ AI_MODEL=gemini-1.5-flash
 AI_TIMEOUT_SECONDS=30
 AI_MAX_RPM=60
 AI_MAX_RETRIES=3
+
+# CORS設定（開発環境）
+CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+
+# 本番環境では以下のように設定してください：
+# CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 ```
 
 5. アプリケーションの起動
@@ -155,8 +161,9 @@ rm backend/app/app.db
 
 - JWT認証によるセッション管理
 - パスワードハッシュ化（bcrypt）
-- CORS設定
+- 環境変数によるCORS設定（本番環境でのセキュリティ向上）
 - レート制限機能
+- APIキーの環境変数管理
 - APIキーの環境変数管理
 
 ## パフォーマンス

@@ -9,6 +9,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import { HaikuPost, ReactionId, Visibility } from './types';
 import { getInitialReactions } from './constants';
 import { useAuth } from './contexts/AuthContext';
+import { useToast } from './contexts/ToastContext';
 import { fetchPosts as apiFetchPosts, createPost as apiCreatePost, react as apiReact, unreact as apiUnreact, replyToPost as apiReplyToPost, quotePost as apiQuotePost } from './services/backendService';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -29,6 +30,7 @@ const App: React.FC = () => {
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(1);
     const { currentUser } = useAuth();
+    const { showError, showSuccess } = useToast();
 
     const loadPosts = useCallback(async (sort: 'new'|'trending', pageNum: number = 1, append: boolean = false) => {
         setLoading(true);
@@ -62,7 +64,9 @@ const App: React.FC = () => {
             setHasMore(backendPosts.length >= 20);
         } catch (e) {
             console.error('Failed to load posts', e);
-            setError('投稿の読み込みに失敗しました。');
+            const errorMessage = '投稿の読み込みに失敗しました。';
+            setError(errorMessage);
+            showError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -89,7 +93,7 @@ const App: React.FC = () => {
 
     const handleAddPost = useCallback(async (newPostData: Omit<HaikuPost, 'id' | 'timestamp' | 'author' | 'authorAvatar' | 'reactions'>) => {
         if (!currentUser) {
-            alert("ログインが必要です。");
+            showError("ログインが必要です。");
             return;
         }
         try {
@@ -147,9 +151,10 @@ const App: React.FC = () => {
                 quotedPostId: created.quoted_post_id ? String(created.quoted_post_id) : undefined,
             };
             setHaikuPosts(prevPosts => [newPost, ...prevPosts]);
+            showSuccess('投稿が完了しました！');
         } catch (e) {
             console.error('Failed to create post via backend', e);
-            alert('投稿に失敗しました。しばらくしてから再度お試しください。');
+            showError('投稿に失敗しました。しばらくしてから再度お試しください。');
         }
     }, [currentUser]);
 
@@ -170,6 +175,7 @@ const App: React.FC = () => {
             } : p));
         } catch (e) {
             console.error('Failed to react', e);
+            showError('リアクションの送信に失敗しました。');
         }
     }, []);
 

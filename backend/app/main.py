@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Literal, Optional
 from datetime import timedelta
+import os
 
 from .db import Base, engine, get_db
 from .models import Post as PostModel, User as UserModel
@@ -19,12 +20,15 @@ from fugashi import Tagger
 
 app = FastAPI(title="Sense Haiku Backend", version="0.1.0")
 
+# CORS設定を環境変数から取得
+def get_cors_origins():
+    """環境変数からCORSオリジンを取得"""
+    cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174")
+    return [origin.strip() for origin in cors_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

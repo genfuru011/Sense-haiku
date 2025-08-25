@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { HaikuPost, Visibility } from '../types';
 import { generateHaiku, countMora } from '../services/backendService';
+import { useToast } from '../contexts/ToastContext';
 import QuotedHaikuCard from '../components/QuotedHaikuCard';
 
 interface NewPostPageProps {
@@ -34,6 +35,7 @@ const InputField: React.FC<{
 
 const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
   const navigate = useNavigate();
+  const { showError } = useToast();
   const [searchParams] = useSearchParams();
   const quotedPostId = searchParams.get('quote');
   
@@ -71,15 +73,16 @@ const NewPostPage: React.FC<NewPostPageProps> = ({ posts, addPost }) => {
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'AIの生成に失敗しました。時間をおいて再試行してください。';
       // よくある失敗パターンに対して文言を最適化
+      let errorMessage = msg;
       if (msg.includes('timeout') || msg.includes('Timeout') || msg.includes('408')) {
-        setAiError('AIがタイムアウトしました。通信状況を確認し、少し待って再試行してください。');
+        errorMessage = 'AIがタイムアウトしました。通信状況を確認し、少し待って再試行してください。';
       } else if (msg.includes('Rate limit') || msg.includes('429')) {
-        setAiError('短時間にリクエストが集中しています。しばらく待ってから再試行してください。');
+        errorMessage = '短時間にリクエストが集中しています。しばらく待ってから再試行してください。';
       } else if (msg.includes('AI upstream error') || msg.includes('503')) {
-        setAiError('AIサービスが混雑しています。時間を置いてもう一度お試しください。');
-      } else {
-        setAiError(msg);
+        errorMessage = 'AIサービスが混雑しています。時間を置いてもう一度お試しください。';
       }
+      setAiError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoadingAi(false);
     }
