@@ -3,6 +3,12 @@
 ## 概要
 Sense-haikuをRenderでデプロイする手順です。
 
+**最新の機能**
+- モバイル最適化（右下固定投稿ボタン、プルダウン更新）
+- 投稿詳細ページ（階層的な返信システム）
+- AI支援機能（Gemini/OpenAI対応）
+- リアルタイムモーラ計算
+
 ## 前提条件
 - GitHubアカウント
 - Renderアカウント
@@ -22,9 +28,9 @@ Sense-haikuをRenderでデプロイする手順です。
 
 3. **設定**
    - **Name**: `sense-haiku-api`
-   - **Environment**: `Python 3`
-   - **Build Command**: `./build.sh`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Environment**: `Docker`
+   - **Root Directory**: `backend`
+   - **Dockerfile Path**: `backend/Dockerfile`
 
 4. **環境変数の設定**
    ```
@@ -35,7 +41,8 @@ Sense-haikuをRenderでデプロイする手順です。
    AI_TIMEOUT_SECONDS=30
    AI_MAX_RPM=60
    AI_MAX_RETRIES=3
-   CORS_ORIGINS=https://sense-haiku.onrender.com,https://sense-haiku-frontend.onrender.com
+   CORS_ORIGINS=https://sense-haiku-frontend.onrender.com
+   JWT_SECRET_KEY=your_super_secret_jwt_key_here_change_this_in_production
    ```
 
 5. **データベースの作成**
@@ -44,12 +51,15 @@ Sense-haikuをRenderでデプロイする手順です。
    - 作成後、接続文字列をコピー
    - 環境変数に追加: `DATABASE_URL=postgresql://...`
 
-6. **データベースの初期化**
+6. **デプロイ実行**
+   - 「Create Web Service」をクリック
+   - デプロイ完了まで待機（5-10分）
+
+7. **データベースの初期化**
    - デプロイ完了後、以下のURLにPOSTリクエストを送信:
    ```
    POST https://sense-haiku-api.onrender.com/api/init-db
    ```
-   - または、Renderダッシュボードで「Manual Deploy」を実行
 
 ### 2. フロントエンド（React）のデプロイ
 
@@ -67,17 +77,26 @@ Sense-haikuをRenderでデプロイする手順です。
    VITE_API_BASE=https://sense-haiku-api.onrender.com
    ```
 
-### 3. カスタムドメインの設定（オプション）
+4. **デプロイ実行**
+   - 「Create Static Site」をクリック
+   - デプロイ完了まで待機
 
-1. **ドメインの購入**
-   - Namecheap、Google Domains等で購入
+### 3. 動作確認
 
-2. **DNS設定**
-   - Aレコード: RenderのIPアドレス
-   - CNAMEレコード: Renderのドメイン
+1. **バックエンドの確認**
+   ```
+   curl -I https://sense-haiku-api.onrender.com/api/health
+   ```
 
-3. **Renderでドメイン追加**
-   - 各サービスでカスタムドメインを追加
+2. **フロントエンドの確認**
+   - ブラウザでフロントエンドURLにアクセス
+   - 投稿一覧の表示確認
+   - 新規投稿機能の確認
+
+3. **モバイル対応の確認**
+   - レスポンシブデザイン
+   - プルダウン更新機能
+   - 右下固定投稿ボタン
 
 ## コスト
 
@@ -97,21 +116,26 @@ Sense-haikuをRenderでデプロイする手順です。
 
 ### よくある問題
 
-1. **ビルドエラー**
-   - requirements.txtの依存関係を確認
-   - Pythonバージョンを確認
+1. **バックエンド404エラー**
+   - Renderの設定でRoot Directoryが`backend`になっているか確認
+   - Dockerfile Pathが`backend/Dockerfile`になっているか確認
+   - 環境変数`DATABASE_URL`が設定されているか確認
 
-2. **データベース接続エラー**
-   - DATABASE_URLの形式を確認
-   - PostgreSQLの起動を確認
+2. **MeCabインストールエラー**
+   - DockerfileでMeCabが正しくインストールされているか確認
+   - ビルドログでエラーがないか確認
 
-3. **CORSエラー**
-   - CORS_ORIGINSの設定を確認
-   - フロントエンドのURLを追加
+3. **データベース接続エラー**
+   - `DATABASE_URL`の形式を確認
+   - 初期化エンドポイント`/api/init-db`を実行
 
-4. **APIキーエラー**
-   - 環境変数の設定を確認
-   - APIキーの有効性を確認
+4. **フロントエンド真っ白**
+   - 環境変数`VITE_API_BASE`の設定確認
+   - バックエンドAPIの動作確認
+   - ブラウザの開発者ツールでエラー確認
+
+5. **CORSエラー**
+   - `CORS_ORIGINS`にフロントエンドURLが含まれているか確認
 
 ## 監視・メンテナンス
 

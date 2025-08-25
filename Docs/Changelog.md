@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to Keep a Changelog and uses SemVer.
 
 ## [Unreleased]
+- UX: モバイル用投稿ボタンを右下に固定配置（ユーザーアイコンとの重複を解消）
 - Feat: 投稿詳細ページの実装（HaikuCardクリックで詳細表示）
 - Feat: 階層的な返信システム（ネストした返信の表示）
 - Feat: ネスト深さ制限機能（2階層まで表示、詳細ページでは制限なし）
